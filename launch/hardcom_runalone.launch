@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<launch>
+        <node pkg="airship_keyboard" type="hardcom.py" name="hardcom_runalone"  output="screen">
+        		<param name="rate" value="30.0" type="double"/>
+				<param name="topic" value="hardcom" type="string"/>
+        </node>
+</launch>

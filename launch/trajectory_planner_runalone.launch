@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<launch>
+		<include file="$(find airship_keyboard)/launch/hardcom_runalone.launch"/>
+		<include file="$(find airship_keyboard)/launch/cameracom_runalone.launch"/>
+		<include file="$(find airship_keyboard)/launch/odometry_runalone.launch"/>
+
+        <node pkg="airship_keyboard" type="trajectory_planner.py" name="trajectory_planner_runalone"  output="screen">
+        		<param name="rate" value="30.0" type="double"/>
+				<param name="topic" value="odometry" type="string"/>
+				<param name="topic_hardcom" value="hardcom" type="string"/>
+				<param name="topic_camcom" value="cameracom" type="string"/>
+				<param name="topic_command" value="command" type="string"/>
+				<param name="topic_odometry" value="odometry" type="string"/>
+        </node>
+</launch>

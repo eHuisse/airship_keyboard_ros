@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<launch>
+
+        <node pkg="airship_keyboard" type="hardcom.py" name="hardcom_runalone"  output="screen">
+        		<param name="rate" value="30.0" type="double"/>
+				<param name="topic" value="hardcom" type="string"/>
+        </node>
+
+		<node pkg="airship_keyboard" type="odometry.py" name="odometry_runalone"  output="screen">
+        		<param name="rate" value="30.0" type="double"/>
+				<param name="topic" value="odometry" type="string"/>
+				<param name="topic_hardcom" value="hardcom" type="string"/>
+				<param name="topic_camcom" value="cameracom" type="string"/>
+				<param name="topic_command" value="command" type="string"/>
+        </node>
+
+		<node pkg="airship_keyboard" type="cameracom.py" name="cameracom_runalone"  output="screen">
+				<param name="rate" value="30.0" type="double"/>
+				<param name="topic" value="cameracom" type="string"/>
+				<param name="topic_command" value="command" type="string"/>
+		</node>
+
+		<node pkg="airship_keyboard" type="trajectory_planner.py" name="trajectory_planner_runalone"  output="screen">
+				<param name="rate" value="30.0" type="double"/>
+				<param name="topic" value="trajectory_planner" type="string"/>
+				<param name="topic_hardcom" value="hardcom" type="string"/>
+				<param name="topic_camcom" value="cameracom" type="string"/>
+				<param name="topic_command" value="command" type="string"/>
+				<param name="topic_odometry" value="odometry" type="string"/>
+		</node>
+
+        <node pkg="airship_keyboard" type="command.py" name="command"  output="screen">
+        		<param name="rate" value="30.0" type="double"/>
+				<param name="topic" value="command" type="string"/>
+				<param name="topic_hardcom" value="hardcom" type="string"/>
+				<param name="topic_trajectory_planner" value="trajectory_planner" type="string"/>
+				<param name="topic_odometry" value="odometry" type="string"/>
+		</node>
+</launch>
