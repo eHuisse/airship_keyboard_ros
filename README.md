@@ -46,5 +46,10 @@ rosrun rqt_graph rqt_graph
 ```
 ![Screenshot](rosgraph.png)
 
+### Modules
+
+* hardcom : This is an hardware communication module. For needs of simulation it does not communicate with an I2C bus with hardware components but subscribe to component simulation topics. It diffuse
+
+
 
 

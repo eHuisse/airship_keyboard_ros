@@ -198,17 +198,17 @@ class Core(object):
 		self.gain = [Gain(), Gain(), Gain()]
 
 		#Defining the subscriber
-		rospy.Subscriber("airship/"+self.topic_odometry+"/EstimatedPose", Odometry, self.call_estimated_pose)
-		rospy.Subscriber("airship/"+self.topic_trajectory_planner+"/WishPose", Pose, self.call_wish_pose)
+		rospy.Subscriber(self.topic_odometry+"/EstimatedPose", Odometry, self.call_estimated_pose)
+		rospy.Subscriber(self.topic_trajectory_planner+"/WishPose", Pose, self.call_wish_pose)
 
 		#Defining all the publisher
-		self.motor_command_pub = rospy.Publisher("airship/"+self.topic_root+"/MotorCommand", MotorCommand, queue_size=10)
-		self.is_sleep_pub = rospy.Publisher("airship/"+self.topic_root+"/isSleep", Bool, queue_size=10)
+		self.motor_command_pub = rospy.Publisher(self.topic_root+"/MotorCommand", MotorCommand, queue_size=10)
+		self.is_sleep_pub = rospy.Publisher(self.topic_root+"/isSleep", Bool, queue_size=10)
 
 		#Defining service to set publish rate
-		self.set_rate_service = rospy.Service("airship/"+self.topic_root+"/set_rate", SetRate, self.set_rate)
-		self.set_gain_service = rospy.Service("airship/"+self.topic_root+"/set_gain", SetGain, self.set_gain)
-		self.set_sleep_service = rospy.Service("airship/"+self.topic_root+"/set_sleep", SetSleep, self.set_sleep)
+		self.set_rate_service = rospy.Service(self.topic_root+"/set_rate", SetRate, self.set_rate)
+		self.set_gain_service = rospy.Service(self.topic_root+"/set_gain", SetGain, self.set_gain)
+		self.set_sleep_service = rospy.Service(self.topic_root+"/set_sleep", SetSleep, self.set_sleep)
 
 		while not rospy.is_shutdown():
 

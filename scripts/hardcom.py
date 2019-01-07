@@ -200,8 +200,8 @@ class Core(object):
 		#Defining the subscriber (not necessary for final node)
 		rospy.Subscriber("/raw/lidar", LaserScan, self.call_lidar)
 		rospy.Subscriber("/raw/imu", Imu, self.call_imu)
-		rospy.Subscriber("airship/"+self.topic_command+"/isSleep", Bool, self.call_sleep)
-		rospy.Subscriber("airship/"+self.topic_command+"/MotorCommand", MotorCommand, self.call_motor_command)
+		rospy.Subscriber(self.topic_command+"/isSleep", Bool, self.call_sleep)
+		rospy.Subscriber(self.topic_command+"/MotorCommand", MotorCommand, self.call_motor_command)
 		#rospy.Subscriber("", Vector3, self.call_magnetic)
 
 		#
@@ -209,12 +209,12 @@ class Core(object):
 		#
 
 		#Defining all the publisher
-		self.range_pub = rospy.Publisher("airship/"+self.topic_root+"/LidarRange", Range, queue_size=10)
-		self.imu_pub = rospy.Publisher("airship/"+self.topic_root+"/InertialData", Imu, queue_size=10)
-		self.magnetic_pub = rospy.Publisher("airship/"+self.topic_root+"/MagneticData", MagneticField, queue_size=10)
+		self.range_pub = rospy.Publisher(self.topic_root+"/LidarRange", Range, queue_size=10)
+		self.imu_pub = rospy.Publisher(self.topic_root+"/InertialData", Imu, queue_size=10)
+		self.magnetic_pub = rospy.Publisher(self.topic_root+"/MagneticData", MagneticField, queue_size=10)
 
 		#Defining service to set publish rate
-		self.set_rate_service = rospy.Service("airship/"+self.topic_root+"/set_rate", SetRate, self.set_rate)
+		self.set_rate_service = rospy.Service(self.topic_root+"/set_rate", SetRate, self.set_rate)
 
 		while not rospy.is_shutdown():
 			#In this loop you can put all your code to use I2C bus.

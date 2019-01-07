@@ -144,14 +144,14 @@ class Core(object):
 		# END TO REMOVE FOR NOSIM SYSTEM 
 		#
 
-		rospy.Subscriber("airship/"+self.topic_command+"/isSleep", Bool, self.call_sleep)
+		rospy.Subscriber(self.topic_command+"/isSleep", Bool, self.call_sleep)
 
 		#Defining all the publisher
-		self.img_pub = rospy.Publisher("airship/"+self.topic_root+"/CameraImg", Image, queue_size=10)
-		self.info_pub = rospy.Publisher("airship/"+self.topic_root+"/CameraInfo", CameraInfo, queue_size=10)
+		self.img_pub = rospy.Publisher(self.topic_root+"/CameraImg", Image, queue_size=10)
+		self.info_pub = rospy.Publisher(self.topic_root+"/CameraInfo", CameraInfo, queue_size=10)
 
 		#Defining service for setting publish rate 
-		self.s = rospy.Service("airship/"+self.topic_root+"/set_rate", SetRate, self.set_rate)
+		self.s = rospy.Service(self.topic_root+"/set_rate", SetRate, self.set_rate)
 
 		while not rospy.is_shutdown():
 			if not self.is_sleep_state:

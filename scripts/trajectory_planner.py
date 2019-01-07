@@ -197,20 +197,20 @@ class Core(object):
 		self.is_sleep_state = False
 
 		#Defining the subscriber
-		rospy.Subscriber("airship/"+self.topic_hardcom+"/LidarRange", Range, self.call_range)
-		rospy.Subscriber("airship/"+self.topic_hardcom+"/InertialData", Imu, self.call_imu)
-		rospy.Subscriber("airship/"+self.topic_command+"/isSleep", Bool, self.call_sleep)
-		rospy.Subscriber("airship/"+self.topic_odometry+"/EstimatedPose", Odometry, self.call_estimated_pose)
+		rospy.Subscriber(self.topic_hardcom+"/LidarRange", Range, self.call_range)
+		rospy.Subscriber(self.topic_hardcom+"/InertialData", Imu, self.call_imu)
+		rospy.Subscriber(self.topic_command+"/isSleep", Bool, self.call_sleep)
+		rospy.Subscriber(self.topic_odometry+"/EstimatedPose", Odometry, self.call_estimated_pose)
 
 		#Defining all the publisher
-		self.wish_pose_pub = rospy.Publisher("airship/"+self.topic_root+"/WishPose", Pose, queue_size=10)
+		self.wish_pose_pub = rospy.Publisher(self.topic_root+"/WishPose", Pose, queue_size=10)
 
 		#Defining service to set tracking mode
-		self.proceed_line_tracking = rospy.Service("airship/"+self.topic_root+"/proceed_line_tracking", Trigger, self.line_track)
-		self.proceed_point_tracking = rospy.Service("airship/"+self.topic_root+"/proceed_point_tracking", TrigPointTracking, self.point_track)
+		self.proceed_line_tracking = rospy.Service(self.topic_root+"/proceed_line_tracking", Trigger, self.line_track)
+		self.proceed_point_tracking = rospy.Service(self.topic_root+"/proceed_point_tracking", TrigPointTracking, self.point_track)
 
 		#Defining service to set publish rate
-		self.set_rate_service = rospy.Service("airship/"+self.topic_root+"/set_rate", SetRate, self.set_rate)
+		self.set_rate_service = rospy.Service(self.topic_root+"/set_rate", SetRate, self.set_rate)
 
 		while not rospy.is_shutdown():
 			if not self.is_sleep_state:

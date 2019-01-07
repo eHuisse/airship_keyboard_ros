@@ -162,14 +162,14 @@ class Core(object):
 		self.is_sleep_state = False
 
 		#Defining the subscriber
-		rospy.Subscriber("airship/"+self.topic_hardcom+"/LidarRange", Range, self.call_range)
-		rospy.Subscriber("airship/"+self.topic_hardcom+"/InertialData", Imu, self.call_imu)
-		rospy.Subscriber("airship/"+self.topic_camcom+"/CameraImg", Image, self.call_image)
-		rospy.Subscriber("airship/"+self.topic_camcom+"/CameraInfo", CameraInfo, self.call_camera_info)
-		rospy.Subscriber("airship/"+self.topic_command+"/isSleep", Bool, self.call_sleep)
+		rospy.Subscriber(self.topic_hardcom+"/LidarRange", Range, self.call_range)
+		rospy.Subscriber(self.topic_hardcom+"/InertialData", Imu, self.call_imu)
+		rospy.Subscriber(self.topic_camcom+"/CameraImg", Image, self.call_image)
+		rospy.Subscriber(self.topic_camcom+"/CameraInfo", CameraInfo, self.call_camera_info)
+		rospy.Subscriber(self.topic_command+"/isSleep", Bool, self.call_sleep)
 
 		#Defining all the publisher
-		self.estimated_pose_pub = rospy.Publisher("airship/"+self.topic_root+"/EstimatedPose", Odometry, queue_size=10)
+		self.estimated_pose_pub = rospy.Publisher(self.topic_root+"/EstimatedPose", Odometry, queue_size=10)
 
 		while not rospy.is_shutdown():
 			if not self.is_sleep_state:
