@@ -49,12 +49,11 @@ class Core(object):
 		replaced by the I2C com
 		:param msg: message sanded by imu publisher
 		'''
-		self.pubImu.orientation = msg.orientation
-		self.pubImu.orientation_covariance = msg.orientation_covariance
+		self.pubImu.header = msg.header
 		self.pubImu.angular_velocity = msg.angular_velocity
-		self.pubImu.angular_velocity_covariance = msg.angular_velocity_covariance
+		self.pubImu.angular_velocity_covariance = [0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1]
 		self.pubImu.linear_acceleration = msg.linear_acceleration
-		self.pubImu.linear_acceleration_covariance = msg.linear_acceleration_covariance
+		self.pubImu.linear_acceleration_covariance = [0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1]
 		self._sendImu = True
 
 	#

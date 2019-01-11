@@ -12,6 +12,7 @@ from sensor_msgs.msg import Image
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.msg import Range
 from sensor_msgs.msg import Imu
+from geometry_msgs.msg import PoseStamped
 
 MAX_RATE = 60
 
@@ -58,6 +59,14 @@ class Core(object):
 		:param msg: Image message received
 		'''
 		self.image = msg
+
+	def call_pose(self, msg):
+		'''
+		TOREMOVE BEFORE USING IN REAL
+		This function is called when a pose is published by the morse publishing module.
+		:param msg: PoseStamped message received
+		'''
+		self.real_pose = msg
 
 	def publish_onShutdown(self):
 		'''
@@ -159,6 +168,24 @@ class Core(object):
 
 		'''
 		self.estimated_pose = Odometry()
+
+		'''
+		Header header
+  			uint32 seq
+  			time stamp
+  			string frame_id
+		geometry_msgs/Pose pose
+  		geometry_msgs/Point position
+    			float64 x
+    			float64 y
+    			float64 z
+  		geometry_msgs/Quaternion orientation
+    			float64 x
+    			float64 y
+    			float64 z
+    			float64 w
+		'''
+		self.real_pose = PoseStamped()
 		self.is_sleep_state = False
 
 		#Defining the subscriber
@@ -167,6 +194,8 @@ class Core(object):
 		rospy.Subscriber(self.topic_camcom+"/CameraImg", Image, self.call_image)
 		rospy.Subscriber(self.topic_camcom+"/CameraInfo", CameraInfo, self.call_camera_info)
 		rospy.Subscriber(self.topic_command+"/isSleep", Bool, self.call_sleep)
+
+		rospy.Subscriber("raw/pose", PoseStamped, self.call_pose)
 
 		#Defining all the publisher
 		self.estimated_pose_pub = rospy.Publisher(self.topic_root+"/EstimatedPose", Odometry, queue_size=10)
