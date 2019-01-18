@@ -209,7 +209,7 @@ class Core(object):
 
 		#Defining all the publisher
 		self.range_pub = rospy.Publisher(self.topic_root+"/LidarRange", Range, queue_size=10)
-		self.imu_pub = rospy.Publisher(self.topic_root+"/InertialData", Imu, queue_size=10)
+		self.imu_pub = rospy.Publisher(self.topic_root+"/InertialDataRaw", Imu, queue_size=10)
 		self.magnetic_pub = rospy.Publisher(self.topic_root+"/MagneticData", MagneticField, queue_size=10)
 
 		#Defining service to set publish rate

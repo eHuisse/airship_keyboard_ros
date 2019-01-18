@@ -84,6 +84,7 @@ class Core(object):
 		self.rate = float(rospy.get_param('~rate', '30.0'))
 		self.rate_before_sleep = self.rate
 		self.topic_root = rospy.get_param('~topic', 'odometry')
+		self.topic_imu = rospy.get_param('~topic_imu', 'imu')
 		self.topic_hardcom = rospy.get_param('~topic_hardcom', 'hardcom')
 		self.topic_camcom = rospy.get_param('~topic_camcom', 'cameracom')
 		self.topic_command = rospy.get_param('~topic_command', 'command')
@@ -190,7 +191,7 @@ class Core(object):
 
 		#Defining the subscriber
 		rospy.Subscriber(self.topic_hardcom+"/LidarRange", Range, self.call_range)
-		rospy.Subscriber(self.topic_hardcom+"/InertialData", Imu, self.call_imu)
+		rospy.Subscriber(self.topic_imu+"/InertialData", Imu, self.call_imu)
 		rospy.Subscriber(self.topic_camcom+"/CameraImg", Image, self.call_image)
 		rospy.Subscriber(self.topic_camcom+"/CameraInfo", CameraInfo, self.call_camera_info)
 		rospy.Subscriber(self.topic_command+"/isSleep", Bool, self.call_sleep)
