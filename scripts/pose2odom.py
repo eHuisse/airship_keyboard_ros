@@ -171,22 +171,19 @@ class Core(object):
 			except ZeroDivisionError:
 				self.out_odom.twist.twist.linear = Vector3(0, 0, 0)
 
-	def calibrate_odom(self):
-		if self.n < 10:
-			self.init_odom_z = self.in_pose.pose.pose.position.z
-			self.init_lidar_z = real_range
-			self.n = self.n + 1
-		if 10 < self.n < 150:
-			#Rescaling we increment mean_scale
-			increment = (real_range - self.init_lidar_z)/(self.in_pose.pose.pose.position.z)
-			if np.isnan(increment):
-				pass
-			else:
-				self.mean_scale = abs(increment)
+	def calibrate_odom(self, srv):
+		#Rescaling we increment mean_scale
+		increment = (self.real_range - self.init_lidar_z)/(self.in_pose.pose.pose.position.z + 1e-6)
+		if np.isnan(increment):
+			pass
+			return False, ""
+		else:
+			self.mean_scale = abs(increment)
 			rospy.loginfo("mean : " + str(self.mean_scale))
 			rospy.loginfo("NOM : " + str((self.in_pose.pose.pose.position.z)))
-			rospy.loginfo("DENOM : " + str((real_range - self.init_lidar_z)))
-			self.n = self.n + 1
+			rospy.loginfo("DENOM : " + str((self.real_range - self.init_lidar_z)))
+			return True, ""
+
 
 
 
@@ -294,6 +291,7 @@ class Core(object):
 		self.is_sleep_state = False
 		self.before = rospy.get_rostime()
 		self.n = 0
+		self.real_range = 0
 
 		self.mean_scale = 1
 
@@ -318,6 +316,10 @@ class Core(object):
 		#self.lidar_odom.child_frame_id = "/cam"
 
 		while not rospy.is_shutdown():
+			if self.n < 10:
+				self.init_odom_z = self.in_pose.pose.pose.position.z
+				self.init_lidar_z = self.real_range
+				self.n = self.n + 1
 			#######################################
 			# This is where we can compute the estimated
 			# pose
@@ -327,13 +329,14 @@ class Core(object):
 			#self.out_odom.header.frame_id = ""
 			#self.out_odom.child_frame_id = ""
 
+
 			lidarRange = [0., 0., self.lidar_range.range, 0.]
 
-			real_range = abs(self.qv_mult(self.imu_data.orientation, lidarRange))[2]
+			self.real_range = abs(self.qv_mult(self.imu_data.orientation, lidarRange))[2]
 
 			self.out_odom.pose.pose.position.x = self.in_pose.pose.pose.position.x * self.mean_scale
 			self.out_odom.pose.pose.position.y = self.in_pose.pose.pose.position.y * self.mean_scale
-			self.out_odom.pose.pose.position.z = real_range
+			self.out_odom.pose.pose.position.z = self.real_range
 
 			self.twist_from_pose()
 			#self.lidar_odom.header.stamp = rospy.get_rostime()

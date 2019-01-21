@@ -5,6 +5,7 @@ import sys
 import copy
 import numpy as np
 import cv2
+import pid as PID
 
 from std_msgs.msg import Bool
 from nav_msgs.msg import Odometry
@@ -196,9 +197,12 @@ class Core(object):
 		self.sleep.data = False
 
 		self.gain = [Gain(), Gain(), Gain()]
+		self.gain[0].Kp = 1
+		self.gain[0].Kd = 0.1
+		self.gain[0].Ki = 1
 
 		#Defining the subscriber
-		rospy.Subscriber(self.topic_odometry+"/EstimatedPose", Odometry, self.call_estimated_pose)
+		rospy.Subscriber("pose2odom/EstimatedPose", Odometry, self.call_estimated_pose)
 		rospy.Subscriber(self.topic_trajectory_planner+"/WishPose", Pose, self.call_wish_pose)
 
 		#Defining all the publisher
@@ -211,10 +215,16 @@ class Core(object):
 		self.set_sleep_service = rospy.Service(self.topic_root+"/set_sleep", SetSleep, self.set_sleep)
 
 		while not rospy.is_shutdown():
+			####
+			# Altitude command
+			####
+			#altitude_pid = PID.PID()
+			altitude_error = self.wish_pose.position.z - self.estimated_pose.pose.pose.position.z
 
 			#######################################
 			# This is where we can compute MotorCommand
 			#######################################
+
 			self.motor_command.header.stamp = rospy.Time.now()
 
 			#motor_command......
