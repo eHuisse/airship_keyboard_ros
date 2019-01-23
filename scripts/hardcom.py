@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import rospy
 import socket
 import sys
@@ -212,12 +213,16 @@ class Core(object):
 		self.imu_pub = rospy.Publisher(self.topic_root+"/InertialDataRaw", Imu, queue_size=10)
 		self.magnetic_pub = rospy.Publisher(self.topic_root+"/MagneticData", MagneticField, queue_size=10)
 
+		self.motor_pub = rospy.Publisher(self.topic_root+"/motorcommand", MotorCommand, queue_size=10)
+
 		#Defining service to set publish rate
 		self.set_rate_service = rospy.Service(self.topic_root+"/set_rate", SetRate, self.set_rate)
 
 		while not rospy.is_shutdown():
 			#In this loop you can put all your code to use I2C bus.
 			if not self.is_sleep_state:
+				self.motor_pub.publish(self.motor_command)
+
 				if self._sendRange and self._sendImu and self._sendMagnetic :
 
 					####
@@ -230,7 +235,6 @@ class Core(object):
 					self.imu_pub.publish(self.pubImu)
 					self.magnetic_pub.publish(self.pubMagnetic)
 
-					#
 					# BEGIN TO REMOVE FOR NOSIM SYSTEM 
 					#
 

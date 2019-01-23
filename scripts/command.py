@@ -15,6 +15,7 @@ from airship_keyboard.srv import SetRate
 from airship_keyboard.srv import SetGain
 from airship_keyboard.msg import MotorCommand
 from airship_keyboard.msg import Gain
+from keyboard.msg import Key
 
 MAX_RATE = 60
 
@@ -37,6 +38,27 @@ class Core(object):
 		:param msg: Image message received
 		'''
 		self.wish_pose = msg
+
+	def call_keydown(self, msg):
+		'''
+		This function is called when an estimated pose is published by the odometry node.
+		:param msg: Image message received
+		'''
+		self.keydown = msg
+		if msg.code == 122:
+			self.thrust += 0.1
+		elif msg.code == 115:
+			self.thrust -= 0.1
+		elif msg.code == 100:
+			self.pitch -= 0.1
+		elif msg.code == 113:
+			self.pitch += 0.1
+		elif msg.code == 116:
+			self.yaw += 0.1
+		elif msg.code == 115:
+			self.yaw -= 0.1
+		rospy.loginfo("test")
+
 
 	def set_rate(self, srv):
 		'''
@@ -196,14 +218,21 @@ class Core(object):
 		self.sleep = Bool()
 		self.sleep.data = False
 
+		self.keydown = Key()
+
 		self.gain = [Gain(), Gain(), Gain()]
 		self.gain[0].Kp = 1
 		self.gain[0].Kd = 0.1
 		self.gain[0].Ki = 1
 
+		self.pitch = 0
+		self.yaw = 0
+		self.thrust = 0
+
 		#Defining the subscriber
 		rospy.Subscriber("pose2odom/EstimatedPose", Odometry, self.call_estimated_pose)
 		rospy.Subscriber(self.topic_trajectory_planner+"/WishPose", Pose, self.call_wish_pose)
+		rospy.Subscriber("keyboard/keydown", Key, self.call_keydown)
 
 		#Defining all the publisher
 		self.motor_command_pub = rospy.Publisher(self.topic_root+"/MotorCommand", MotorCommand, queue_size=10)
@@ -221,13 +250,18 @@ class Core(object):
 			#altitude_pid = PID.PID()
 			altitude_error = self.wish_pose.position.z - self.estimated_pose.pose.pose.position.z
 
+			
+
 			#######################################
 			# This is where we can compute MotorCommand
 			#######################################
 
 			self.motor_command.header.stamp = rospy.Time.now()
 
-			#motor_command......
+			self.motor_command.left_motor = self.thrust / 2
+			self.motor_command.right_motor = self.thrust / 2
+			self.motor_command.tail_yaw = self.yaw
+			self.motor_command.tail_pitch = self.pitch 
 
 			self.motor_command_pub.publish(self.motor_command)
 			self.is_sleep_pub.publish(self.sleep)
