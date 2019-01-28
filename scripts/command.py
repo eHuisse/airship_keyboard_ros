@@ -55,7 +55,7 @@ class Core(object):
 			self.pitch += 0.1
 		elif msg.code == 116:
 			self.yaw += 0.1
-		elif msg.code == 115:
+		elif msg.code == 103:
 			self.yaw -= 0.1
 		rospy.loginfo("test")
 
