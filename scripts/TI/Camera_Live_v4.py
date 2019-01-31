@@ -49,12 +49,12 @@ def dis(lines_, center_image_, cam_matrix_, height_, norm_fix_):
 	unit_dir = dir_ / norm_pix_
 	
 	# direction of coor_pix_ to point b in line
-	slope_ = b - coor_pix_
-	norm_p = cv2.norm(b, coor_pix_, cv2.NORM_L2)
+	slope_ = b - a
+	norm_p = cv2.norm(b, a, cv2.NORM_L2)
 	if norm_p == 0:
-		norm_p = .00001
+		norm_p = 0.1
 	unit_line_dir = slope_ / norm_p
-	coor_line_dir = unit_line_dir*norm_p + coor_pix_
+	coor_line_dir = unit_line_dir* norm_fix_ + coor_pix_
 
 	# sum vector
 	slope_sum = coor_line_dir - center_image_
@@ -130,7 +130,7 @@ class LineTracking:
 		self.line_type = 2
 
  # capture frames from the camera
-	def update(self, orig_frame, pose, height, norm_fix=1):
+	def update(self, orig_frame, pose, height, norm_fix=15):
 		# image treatmen
 		self.orig_frame, self.center_image = cam_calib(orig_frame, self.cam_matrix, self.cam_disto)
 		self.frame = cv2.GaussianBlur(self.orig_frame, (5, 5), 0)

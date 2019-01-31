@@ -34,7 +34,7 @@ V0 = np.array([0, 0, 0, 0, 0, 0])
 
 Vtotal = math.sqrt(u**2+v**2+w**2)
 
-x = -6  # initial position following the x axis (m)
+x = -20  # initial position following the x axis (m)
 y = 0  # initial position following the y axis (m)
 z = 2  # initial position following the z axis (m)
 phi = math.radians(0)  # initial psi angle value (rad)
