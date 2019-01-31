@@ -249,7 +249,7 @@ class Core(object):
 																	self.estimated_pose.pose.pose.orientation.z, self.estimated_pose.pose.pose.orientation.w])
 
 					img = self.bridge.imgmsg_to_cv2(self.image, "bgr8")
-					unit_dir, unit_line_dir, sum_vect, frame, edge = self.linetracker.update(img, [r,p,y], self.estimated_pose.pose.pose.position.z, 150)
+					unit_dir, unit_line_dir, sum_vect, frame, edge = self.linetracker.update(img, [r,p,y], self.estimated_pose.pose.pose.position.z)
 					self.viz_img = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
 
 					unit = sum_vect

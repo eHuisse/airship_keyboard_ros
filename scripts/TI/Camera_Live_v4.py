@@ -23,7 +23,7 @@ def center_camera(gyro_, height_, center_image_):
 	return center_camera_
 
 # closest distnce to a point in the line
-def dis(lines_, center_image_, cam_matrix_, height_, norm_fix_):
+def dis(lines_, center_image_, cam_matrix_, height_):
 	center_image_ = np.array(center_image_).astype(float)
 	# if point a_y is smaller than b_y invert values of a and b to have same triangle
 	if lines_[1] < lines_[3]:
@@ -49,10 +49,11 @@ def dis(lines_, center_image_, cam_matrix_, height_, norm_fix_):
 	unit_dir = dir_ / norm_pix_
 	
 	# direction of coor_pix_ to point b in line
+	norm_fix_ = 70
 	slope_ = b - a
 	norm_p = cv2.norm(b, a, cv2.NORM_L2)
 	if norm_p == 0:
-		norm_p = 0.1
+		norm_p = 0.001
 	unit_line_dir = slope_ / norm_p
 	coor_line_dir = unit_line_dir* norm_fix_ + coor_pix_
 
@@ -130,7 +131,7 @@ class LineTracking:
 		self.line_type = 2
 
  # capture frames from the camera
-	def update(self, orig_frame, pose, height, norm_fix=15):
+	def update(self, orig_frame, pose, height):
 		# image treatmen
 		self.orig_frame, self.center_image = cam_calib(orig_frame, self.cam_matrix, self.cam_disto)
 		self.frame = cv2.GaussianBlur(self.orig_frame, (5, 5), 0)
@@ -163,7 +164,7 @@ class LineTracking:
 				if self.line == None:
 					self.lim = np.array([30, 30, -30, 30])
 					self.line = (np.concatenate((self.camera_pos, self.camera_pos), 0) + self.lim).astype(float)
-		self.coor, self.direction, self.norm_wu, self.unit_dir, self.unit_line_dir, self.sum_vect, self.unit_sum = dis(self.line, self.camera_pos, self.cam_matrix, height, norm_fix)
+		self.coor, self.direction, self.norm_wu, self.unit_dir, self.unit_line_dir, self.sum_vect, self.unit_sum = dis(self.line, self.camera_pos, self.cam_matrix, height)
 		self.x1, self.y1, self.x2, self.y2 = self.line.astype(int)
 
 		
