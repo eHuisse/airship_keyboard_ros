@@ -34,12 +34,12 @@ V0 = np.array([0, 0, 0, 0, 0, 0])
 
 Vtotal = math.sqrt(u**2+v**2+w**2)
 
-x = 0  # initial position following the x axis (m)
+x = -6  # initial position following the x axis (m)
 y = 0  # initial position following the y axis (m)
 z = 2  # initial position following the z axis (m)
 phi = math.radians(0)  # initial psi angle value (rad)
 theta = math.radians(0)  # initial theta angle value (rad)
-psi = math.radians(0)  # initial phi theta value (rad)
+psi = math.radians(-90)  # initial phi theta value (rad)
 
 C = 0
 

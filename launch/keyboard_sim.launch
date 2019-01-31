@@ -77,9 +77,11 @@
 			
         <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node" output="screen">
     		<param name="use_mag" value="false"/>
+		<param name="world_frame" value="enu" type="string"/>
+		<param name="stateless" value="false" type="bool"/>
     		<remap from="imu/data_raw" to="/hardcom/InertialDataRaw" />
     		<remap from="imu/data" to="/imu/datacooked" />
-		</node>
+	</node>
 
 		<node pkg="airship_keyboard" type="cameracom.py" name="cameracom_runalone"  output="screen">
 			<param name="rate" value="30.0" type="double"/>

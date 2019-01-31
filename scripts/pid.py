@@ -57,7 +57,7 @@ class PID:
 
         # Windup Guard
         self.int_error = 0.0
-        self.windup_guard = 20.0
+        self.windup_guard = 1.0
 
         self.output = 0.0
 
@@ -75,7 +75,6 @@ class PID:
         """
         error = self.SetPoint - feedback_value
 
-        self.current_time = time.time()
         delta_time = current_time - self.last_time
         delta_error = error - self.last_error
 
@@ -97,6 +96,8 @@ class PID:
             self.last_error = error
 
             self.output = self.PTerm + (self.Ki * self.ITerm) + (self.Kd * self.DTerm)
+
+            return self.output
 
     def setKp(self, proportional_gain):
         """Determines how aggressively the PID reacts to the current error with setting Proportional Gain"""
@@ -127,3 +128,7 @@ class PID:
         Based on a pre-determined sampe time, the PID decides if it should compute or return immediately.
         """
         self.sample_time = sample_time
+
+    def setSetPoint(self, setpoint):
+
+    	self.SetPoint = setpoint

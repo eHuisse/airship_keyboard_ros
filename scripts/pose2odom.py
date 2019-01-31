@@ -143,33 +143,33 @@ class Core(object):
 			prev_y = self.prev_out_odom.pose.pose.position.y
 			prev_z = self.prev_out_odom.pose.pose.position.z
 
-			i = self.out_odom.pose.pose.orientation.x
-			j = self.out_odom.pose.pose.orientation.y
-			k = self.out_odom.pose.pose.orientation.z
-			w = self.out_odom.pose.pose.orientation.w
+			# i = self.out_odom.pose.pose.orientation.x
+			# j = self.out_odom.pose.pose.orientation.y
+			# k = self.out_odom.pose.pose.orientation.z
+			# w = self.out_odom.pose.pose.orientation.w
 
-			prev_i =self.prev_out_odom.pose.pose.orientation.x
-			prev_j =self.prev_out_odom.pose.pose.orientation.y
-			prev_k =self.prev_out_odom.pose.pose.orientation.z
-			prev_w =self.prev_out_odom.pose.pose.orientation.w
+			# prev_i =self.prev_out_odom.pose.pose.orientation.x
+			# prev_j =self.prev_out_odom.pose.pose.orientation.y
+			# prev_k =self.prev_out_odom.pose.pose.orientation.z
+			# prev_w =self.prev_out_odom.pose.pose.orientation.w
 
 			try:
 				self.out_odom.twist.twist.linear = Vector3((x - prev_x) / deltaT,(y - prev_y) / deltaT,(z - prev_z) / deltaT)
 			except ZeroDivisionError:
 				self.out_odom.twist.twist.linear = Vector3(0, 0, 0)
 
-			(prev_r, prev_p, prev_y) = tf.transformations.euler_from_quaternion([self.prev_out_odom.pose.pose.orientation.x, self.prev_out_odom.pose.pose.orientation.y, 
-																	self.prev_out_odom.pose.pose.orientation.z, self.prev_out_odom.pose.pose.orientation.w])
-			(r, p, y) = tf.transformations.euler_from_quaternion([self.out_odom.pose.pose.orientation.x, self.out_odom.pose.pose.orientation.y, 
-																	self.out_odom.pose.pose.orientation.z, self.out_odom.pose.pose.orientation.w])
+			# (prev_r, prev_p, prev_y) = tf.transformations.euler_from_quaternion([self.prev_out_odom.pose.pose.orientation.x, self.prev_out_odom.pose.pose.orientation.y, 
+			# 														self.prev_out_odom.pose.pose.orientation.z, self.prev_out_odom.pose.pose.orientation.w])
+			# (r, p, y) = tf.transformations.euler_from_quaternion([self.out_odom.pose.pose.orientation.x, self.out_odom.pose.pose.orientation.y, 
+			# 														self.out_odom.pose.pose.orientation.z, self.out_odom.pose.pose.orientation.w])
 
-			self.out_odom.twist.covariance = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+			# self.out_odom.twist.covariance = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 
-			try:
-			    self.out_odom.twist.twist.angular = Vector3((r - prev_r) / deltaT,(p - prev_p) / deltaT,(y - prev_y) / deltaT)
+			# try:
+			#     self.out_odom.twist.twist.angular = Vector3((r - prev_r) / deltaT,(p - prev_p) / deltaT,(y - prev_y) / deltaT)
 
-			except ZeroDivisionError:
-				self.out_odom.twist.twist.linear = Vector3(0, 0, 0)
+			# except ZeroDivisionError:
+			# 	self.out_odom.twist.twist.linear = Vector3(0, 0, 0)
 
 	def calibrate_odom(self, srv):
 		#Rescaling we increment mean_scale
@@ -339,6 +339,10 @@ class Core(object):
 			self.out_odom.pose.pose.position.z = self.real_range
 
 			self.twist_from_pose()
+
+			self.out_odom.pose.pose.orientation = self.imu_data.orientation
+			self.out_odom.twist.twist.angular = self.imu_data.angular_velocity
+
 			#self.lidar_odom.header.stamp = rospy.get_rostime()
 			#self.out_odom.header.stamp = rospy.get_rostime()
 			self.estimated_pose_pub.publish(self.out_odom)

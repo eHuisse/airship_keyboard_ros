@@ -5,11 +5,13 @@ import sys
 import copy
 import numpy as np
 import cv2
-import pid as PID
+import pid
+import tf
 
 from std_msgs.msg import Bool
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Vector3
 from airship_keyboard.srv import SetSleep
 from airship_keyboard.srv import SetRate
 from airship_keyboard.srv import SetGain
@@ -32,12 +34,16 @@ class Core(object):
 		'''
 		self.estimated_pose = msg
 
-	def call_wish_pose(self, msg):
+	def call_wish_command(self, msg):
 		'''
 		This function is called when an estimated pose is published by the odometry node.
 		:param msg: Image message received
 		'''
-		self.wish_pose = msg
+		self.wish_command = msg
+
+		self.speed_pid.setSetPoint(msg.x)
+		self.elevation_pid.setSetPoint(msg.y)
+		self.rudder_pid.setSetPoint(msg.z)
 
 	def call_keydown(self, msg):
 		'''
@@ -95,13 +101,25 @@ class Core(object):
 		self.gain[0].Kd = srv.gain1.Kd
 		self.gain[0].Ki = srv.gain1.Ki
 
+		self.speed_pid.setKp(self.gain[0].Kp)
+		self.speed_pid.setKd(self.gain[0].Kd)
+		self.speed_pid.setKi(self.gain[0].Ki)
+
 		self.gain[1].Kp = srv.gain2.Kp
 		self.gain[1].Kd = srv.gain2.Kd
 		self.gain[1].Ki = srv.gain2.Ki
 
+		self.elevation_pid.setKp(self.gain[1].Kp)
+		self.elevation_pid.setKd(self.gain[1].Kd)
+		self.elevation_pid.setKi(self.gain[1].Ki)
+
 		self.gain[2].Kp = srv.gain3.Kp
 		self.gain[2].Kd = srv.gain3.Kd
 		self.gain[2].Ki = srv.gain3.Ki
+
+		self.rudder_pid.setKp(self.gain[2].Kp)
+		self.rudder_pid.setKd(self.gain[2].Kd)
+		self.rudder_pid.setKi(self.gain[2].Ki)
 
 	def set_sleep(self, srv):
 		self.sleep.data = srv.set_sleep
@@ -174,24 +192,14 @@ class Core(object):
 		self.estimated_pose = Odometry()
 
 		'''
-		POSE FIELDS:
-		# A representation of pose in free space, composed of position and orientation.
+		Vector3 FIELDS:
 
-		Point position
-		POINT FIELDS:
-		# This contains the position of a point in free space
 			float64 x
 			float64 y
 			float64 z
 
-		Quaternion orientation
-		QUATERNION FIELDS
-			float64 x
-			float64 y
-			float64 z
-			float64 w
 		'''
-		self.wish_pose = Pose()
+		self.wish_command = Vector3()
 
 		'''
 		MOTORCOMMAND FIELDs:
@@ -221,17 +229,29 @@ class Core(object):
 		self.keydown = Key()
 
 		self.gain = [Gain(), Gain(), Gain()]
-		self.gain[0].Kp = 1
-		self.gain[0].Kd = 0.1
-		self.gain[0].Ki = 1
+		self.gain[0].Kp = 1.
+		self.gain[0].Kd = 0.
+		self.gain[0].Ki = 0.
+
+		self.gain[1].Kp = 1.
+		self.gain[1].Kd = 0.
+		self.gain[1].Ki = 0.
+
+		self.gain[2].Kp = 1.
+		self.gain[2].Kd = 0.
+		self.gain[2].Ki = 0.
 
 		self.pitch = 0
 		self.yaw = 0
 		self.thrust = 0
 
+		self.speed_pid = pid.PID(rospy.get_time(), P = 0.3, I = 0., D=0.)
+		self.elevation_pid = pid.PID(rospy.get_time(), P = 0.2, I = 0., D=0.1)
+		self.rudder_pid = pid.PID(rospy.get_time(), P = 10, I = 1., D=0.1)
+
 		#Defining the subscriber
 		rospy.Subscriber("pose2odom/EstimatedPose", Odometry, self.call_estimated_pose)
-		rospy.Subscriber(self.topic_trajectory_planner+"/WishPose", Pose, self.call_wish_pose)
+		rospy.Subscriber(self.topic_trajectory_planner+"/WishCommand", Vector3, self.call_wish_command)
 		rospy.Subscriber("keyboard/keydown", Key, self.call_keydown)
 
 		#Defining all the publisher
@@ -247,21 +267,37 @@ class Core(object):
 			####
 			# Altitude command
 			####
-			#altitude_pid = PID.PID()
-			altitude_error = self.wish_pose.position.z - self.estimated_pose.pose.pose.position.z
 
-			
+			(r, p, y) = tf.transformations.euler_from_quaternion([self.estimated_pose.pose.pose.orientation.x, self.estimated_pose.pose.pose.orientation.y, 
+																	self.estimated_pose.pose.pose.orientation.z, self.estimated_pose.pose.pose.orientation.w])
 
-			#######################################
-			# This is where we can compute MotorCommand
-			#######################################
+			estimated_total_speed = np.sqrt(self.estimated_pose.twist.twist.linear.x ** 2 + self.estimated_pose.twist.twist.linear.y ** 2 + self.estimated_pose.twist.twist.linear.z ** 2)
+
+			speed_command = self.speed_pid.update(estimated_total_speed, rospy.get_time())
+			elevation_command = self.elevation_pid.update(p, rospy.get_time())
+			rudder_command = self.rudder_pid.update(y, rospy.get_time())
+			print("sssssssssssssssspeeeeeeeeeeeeeddddddddddddddddddd", r,",",p,",",y)
 
 			self.motor_command.header.stamp = rospy.Time.now()
 
-			self.motor_command.left_motor = self.thrust / 2
-			self.motor_command.right_motor = self.thrust / 2
-			self.motor_command.tail_yaw = self.yaw
-			self.motor_command.tail_pitch = self.pitch 
+			if speed_command > 1:
+				speed_command = 1
+			if speed_command < -1:
+				speed_command = -1
+			if elevation_command > np.pi/4:
+				elevation_command = np.pi/4
+			if elevation_command < -np.pi/4:
+				elevation_command = -np.pi/4
+			if rudder_command > np.pi/4:
+				rudder_command = np.pi/4
+			if rudder_command < -np.pi/4:
+				rudder_command = -np.pi/4
+
+
+			self.motor_command.left_motor = speed_command / 2
+			self.motor_command.right_motor = speed_command / 2
+			self.motor_command.tail_yaw = elevation_command
+			self.motor_command.tail_pitch = rudder_command
 
 			self.motor_command_pub.publish(self.motor_command)
 			self.is_sleep_pub.publish(self.sleep)

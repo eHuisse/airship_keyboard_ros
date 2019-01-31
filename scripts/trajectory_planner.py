@@ -5,10 +5,16 @@ import sys
 import copy
 import numpy as np
 import cv2
+import tf
+from cv_bridge import CvBridge, CvBridgeError
+
+sys.path.insert(0, "/home/edouard/catkin_ws/src/airship_keyboard/scripts/TI")
+import Camera_Live_v4 as lt
 
 from std_msgs.msg import Bool
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Vector3
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.msg import Range
@@ -52,6 +58,10 @@ class Core(object):
 		'''
 		self.estimated_pose = msg
 
+	def call_image(self, msg):
+
+		self.image = msg
+
 	def publish_onShutdown(self):
 		'''
 		This method contain all the thing to publish on shutdown. It recommanded to publish 0 for 
@@ -65,17 +75,16 @@ class Core(object):
 		#	Code here
 		#########################
 
-		#self.wish_pose = ...
+		self.is_line_tracking = True
+
 		return True, "Succeed"
 
 	def point_track(self, srv):
 		self.point_x = srv.position.x
 		self.point_y = srv.position.y
 		self.point_z = srv.position.z
-		self.quaternion_x = srv.orientation.x
-		self.quaternion_y = srv.orientation.y
-		self.quaternion_z = srv.orientation.z
-		self.quaternion_w = srv.orientation.w
+
+		self.is_trajectory_tracking = True
 
 		#########################
 		#	Code here
@@ -174,6 +183,8 @@ class Core(object):
 		  float64[36] covariance
 		'''
 		self.estimated_pose = Odometry()
+		self.image = Image()
+		self.viz_img = Image()
 
 		'''
 		POSE FIELDS:
@@ -193,17 +204,33 @@ class Core(object):
 			float64 z
 			float64 w
 		'''
-		self.wish_pose = Pose()
+		#self.wish_pose = Pose()
+
+		'''
+		Vector3 FIELDS:
+
+		float64 x
+		float64 y
+		float64 z
+		'''
+		self.wish_command = Vector3() # x : speed command ; y : elevation command ; z : rudder command 
+
+		self.is_line_tracking = False
+		self.is_trajectory_tracking = False
 		self.is_sleep_state = False
+
+		self.bridge = CvBridge()
 
 		#Defining the subscriber
 		rospy.Subscriber(self.topic_hardcom+"/LidarRange", Range, self.call_range)
 		rospy.Subscriber(self.topic_hardcom+"/InertialData", Imu, self.call_imu)
 		rospy.Subscriber(self.topic_command+"/isSleep", Bool, self.call_sleep)
-		rospy.Subscriber(self.topic_odometry+"/EstimatedPose", Odometry, self.call_estimated_pose)
+		rospy.Subscriber("cameracom/CameraImg", Image, self.call_image)
+		rospy.Subscriber("pose2odom/EstimatedPose", Odometry, self.call_estimated_pose)
 
 		#Defining all the publisher
-		self.wish_pose_pub = rospy.Publisher(self.topic_root+"/WishPose", Pose, queue_size=10)
+		self.wish_command_pub = rospy.Publisher(self.topic_root+"/WishCommand", Vector3, queue_size=10)
+		self.vizualisation_pub = rospy.Publisher("planner/linetrack_viz", Image, queue_size=10)
 
 		#Defining service to set tracking mode
 		self.proceed_line_tracking = rospy.Service(self.topic_root+"/proceed_line_tracking", Trigger, self.line_track)
@@ -211,13 +238,32 @@ class Core(object):
 
 		#Defining service to set publish rate
 		self.set_rate_service = rospy.Service(self.topic_root+"/set_rate", SetRate, self.set_rate)
+		self.linetracker = lt.LineTracking()
 
 		while not rospy.is_shutdown():
 			if not self.is_sleep_state:
 				#Publish the wishpose
-				self.wish_pose_pub.publish(self.wish_pose)
+				
+				if self.is_line_tracking:
+					(r, p, y) = tf.transformations.euler_from_quaternion([self.estimated_pose.pose.pose.orientation.x, self.estimated_pose.pose.pose.orientation.y, 
+																	self.estimated_pose.pose.pose.orientation.z, self.estimated_pose.pose.pose.orientation.w])
+
+					img = self.bridge.imgmsg_to_cv2(self.image, "bgr8")
+					unit_dir, unit_line_dir, sum_vect, frame, edge = self.linetracker.update(img, [r,p,y], self.estimated_pose.pose.pose.position.z, 150)
+					self.viz_img = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
+
+					unit = sum_vect
+
+					yaw = (np.arctan(unit[1]/unit[0])) + y
+
+					self.wish_command.x = 0.5
+					self.wish_command.y = 0.
+					self.wish_command.z = yaw
+					self.vizualisation_pub.publish(self.viz_img)
+					self.wish_command_pub.publish(self.wish_command)
 
 				#this is the rate of the publishment.
+
 				if self.rate:
 					rospy.sleep(1/self.rate)
 				else:
